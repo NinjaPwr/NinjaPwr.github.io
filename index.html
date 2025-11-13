@@ -49,9 +49,10 @@
 <h1>🎴 Pokémon Card Clicker</h1>
 <p>PokéCoins: <span id="coins">0</span> 💰</p>
 
-<button onclick="clickCoins()">🖱️ Click for 10 Coins</button><br>
+<button onclick="clickCoins()">🖱️ Click for Coins</button><br>
 <button onclick="buyPack()">🛒 Buy Booster Pack (100 Coins)</button>
-<button onclick="openPack()">🎁 Open Booster Pack</button>
+<button onclick="openPack()">🎁 Open Booster Pack</button><br>
+<a href="shop.html"><button>🏪 Go to Shop</button></a>
 
 <h2>Packs Owned: <span id="packs">0</span></h2>
 
@@ -59,11 +60,12 @@
 <div id="inventory"></div>
 
 <script>
-let coins = 0;
-let packs = 0;
-let collection = [];
+let coins = Number(localStorage.getItem("coins")) || 0;
+let packs = Number(localStorage.getItem("packs")) || 0;
+let collection = JSON.parse(localStorage.getItem("collection") || "[]");
+let clickPower = Number(localStorage.getItem("clickPower")) || 10;
 
-// Card rarity probabilities and pool
+// Pokémon card pool
 const cardPool = [
   { name: "Pidgey", rarity: "common" },
   { name: "Rattata", rarity: "common" },
@@ -85,10 +87,16 @@ function updateUI() {
     div.textContent = `${c.name} (${c.rarity.toUpperCase()})`;
     inv.appendChild(div);
   });
+
+  // Save game data
+  localStorage.setItem("coins", coins);
+  localStorage.setItem("packs", packs);
+  localStorage.setItem("collection", JSON.stringify(collection));
+  localStorage.setItem("clickPower", clickPower);
 }
 
 function clickCoins() {
-  coins += 10;
+  coins += clickPower;
   updateUI();
 }
 
@@ -109,7 +117,6 @@ function openPack() {
   }
   packs--;
 
-  // Choose a random card rarity
   const roll = Math.random();
   let rarity;
   if (roll < 0.6) rarity = "common";
@@ -118,7 +125,6 @@ function openPack() {
   else if (roll < 0.99) rarity = "legendary";
   else rarity = "mythic";
 
-  // Pick a random card of that rarity
   const possibleCards = cardPool.filter(c => c.rarity === rarity);
   const card = possibleCards[Math.floor(Math.random() * possibleCards.length)];
 
@@ -131,3 +137,4 @@ updateUI();
 </script>
 </body>
 </html>
+
