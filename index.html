@@ -6,135 +6,164 @@
 <title>Pokémon Card Clicker</title>
 <style>
   body {
-    background: linear-gradient(180deg, #222, #000);
-    color: #fff;
-    font-family: 'Trebuchet MS', sans-serif;
-    text-align: center;
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: #121212;
+    color: #eee;
+    display: flex;
+    height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: #1c1c1c;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
+    box-sizing: border-box;
+    border-right: 1px solid #2a2a2a;
   }
-  h1 {
-    font-size: 2.5em;
-    color: #ffcc00;
-    text-shadow: 2px 2px 5px #ff0000;
+
+  .sidebar h2 {
+    color: #ffcb05;
+    font-size: 1.3em;
+    text-align: center;
+    margin-bottom: 20px;
   }
-  button {
-    background: #ffcc00;
+
+  .xp-bar {
+    background: #333;
+    border-radius: 8px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+  }
+  .xp-fill {
+    background: #ffcb05;
+    height: 100%;
+    width: 40%;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav button {
+    background: none;
+    color: #ccc;
+    border: none;
+    text-align: left;
+    font-size: 1em;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav button:hover {
+    background: #2a2a2a;
+    color: #fff;
+  }
+
+  /* Main Area */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .currency {
+    font-size: 3em;
+    margin-bottom: 10px;
+  }
+
+  .click-btn {
+    font-size: 1.5em;
+    background: #ffcb05;
     color: #222;
     border: none;
-    border-radius: 8px;
-    padding: 12px 25px;
-    margin: 10px;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
     cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    transition: 0.2s;
+    transition: transform 0.1s, background 0.2s;
   }
-  button:hover { background: #ffd633; }
-  #inventory div {
-    border: 2px solid #444;
-    border-radius: 6px;
-    margin: 5px auto;
-    width: 250px;
-    padding: 8px;
+  .click-btn:hover {
+    background: #ffd633;
+    transform: scale(1.05);
   }
-  .common { color: gray; }
-  .uncommon { color: lightgreen; }
-  .rare { color: dodgerblue; }
-  .legendary { color: gold; }
-  .mythic { color: violet; }
+
+  .stats {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #aaa;
+  }
+
+  /* Footer */
+  .footer {
+    position: absolute;
+    bottom: 10px;
+    font-size: 0.8em;
+    color: #555;
+  }
 </style>
 </head>
 <body>
 
-<h1>🎴 Pokémon Card Clicker</h1>
-<p>PokéCoins: <span id="coins">0</span> 💰</p>
+<!-- Sidebar -->
+<div class="sidebar">
+  <h2>Trainer Rank</h2>
+  <p>Level 7 - <span id="xp">2206</span>/<span id="xpMax">8414</span> XP</p>
+  <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
 
-<button onclick="clickCoins()">🖱️ Click for Coins</button><br>
-<button onclick="buyPack()">🛒 Buy Booster Pack (100 Coins)</button>
-<button onclick="openPack()">🎁 Open Booster Pack</button><br>
-<a href="shop.html"><button>🏪 Go to Shop</button></a>
+  <div class="nav">
+    <button onclick="showSection('earn')">💰 Earn</button>
+    <button onclick="showSection('inventory')">🗂 Inventory</button>
+    <button onclick="showSection('shop')">🏪 Shop</button>
+    <button onclick="showSection('games')">🎮 Games</button>
+    <button onclick="showSection('upgrades')">⚙ Upgrades</button>
+    <button onclick="showSection('missions')">🧩 Missions</button>
+  </div>
+</div>
 
-<h2>Packs Owned: <span id="packs">0</span></h2>
-
-<h2>🗂️ Your Card Collection</h2>
-<div id="inventory"></div>
+<!-- Main area -->
+<div class="main" id="mainContent">
+  <div class="currency">💶 <span id="coins">0</span>€</div>
+  <button class="click-btn" onclick="earn()">Click!</button>
+  <div class="stats">0.00€/s</div>
+  <div class="footer">Pokémon Card Clicker v1.0</div>
+</div>
 
 <script>
 let coins = Number(localStorage.getItem("coins")) || 0;
-let packs = Number(localStorage.getItem("packs")) || 0;
-let collection = JSON.parse(localStorage.getItem("collection") || "[]");
-let clickPower = Number(localStorage.getItem("clickPower")) || 10;
+let xp = Number(localStorage.getItem("xp")) || 0;
+let xpMax = 8414;
 
-// Pokémon card pool
-const cardPool = [
-  { name: "Pidgey", rarity: "common" },
-  { name: "Rattata", rarity: "common" },
-  { name: "Ekans", rarity: "uncommon" },
-  { name: "Sandshrew", rarity: "uncommon" },
-  { name: "Charizard", rarity: "rare" },
-  { name: "Mewtwo", rarity: "legendary" },
-  { name: "Arceus", rarity: "mythic" }
-];
+function earn() {
+  coins += 0.05; // 5 cents per click
+  xp += 10;
+  localStorage.setItem("coins", coins);
+  localStorage.setItem("xp", xp);
+  updateUI();
+}
 
 function updateUI() {
-  document.getElementById("coins").textContent = coins;
-  document.getElementById("packs").textContent = packs;
-  const inv = document.getElementById("inventory");
-  inv.innerHTML = "";
-  collection.forEach(c => {
-    const div = document.createElement("div");
-    div.className = c.rarity;
-    div.textContent = `${c.name} (${c.rarity.toUpperCase()})`;
-    inv.appendChild(div);
-  });
-
-  // Save game data
-  localStorage.setItem("coins", coins);
-  localStorage.setItem("packs", packs);
-  localStorage.setItem("collection", JSON.stringify(collection));
-  localStorage.setItem("clickPower", clickPower);
+  document.getElementById("coins").textContent = coins.toFixed(2);
+  document.getElementById("xp").textContent = xp;
+  document.getElementById("xpFill").style.width = (xp / xpMax * 100) + "%";
 }
 
-function clickCoins() {
-  coins += clickPower;
-  updateUI();
-}
-
-function buyPack() {
-  if (coins >= 100) {
-    coins -= 100;
-    packs++;
-    updateUI();
-  } else {
-    alert("Not enough PokéCoins!");
-  }
-}
-
-function openPack() {
-  if (packs <= 0) {
-    alert("You don’t have any booster packs!");
-    return;
-  }
-  packs--;
-
-  const roll = Math.random();
-  let rarity;
-  if (roll < 0.6) rarity = "common";
-  else if (roll < 0.85) rarity = "uncommon";
-  else if (roll < 0.95) rarity = "rare";
-  else if (roll < 0.99) rarity = "legendary";
-  else rarity = "mythic";
-
-  const possibleCards = cardPool.filter(c => c.rarity === rarity);
-  const card = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-
-  collection.push(card);
-  alert(`You pulled a ${rarity.toUpperCase()} card: ${card.name}!`);
-  updateUI();
+function showSection(name) {
+  alert("This would switch to: " + name);
 }
 
 updateUI();
 </script>
+
 </body>
 </html>
-
