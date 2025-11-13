@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Card Clicker</title>
+<style>
+  body {
+    background: linear-gradient(180deg, #222, #000);
+    color: #fff;
+    font-family: 'Trebuchet MS', sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2.5em;
+    color: #ffcc00;
+    text-shadow: 2px 2px 5px #ff0000;
+  }
+  button {
+    background: #ffcc00;
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    margin: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  button:hover { background: #ffd633; }
+  #inventory div {
+    border: 2px solid #444;
+    border-radius: 6px;
+    margin: 5px auto;
+    width: 250px;
+    padding: 8px;
+  }
+  .common { color: gray; }
+  .uncommon { color: lightgreen; }
+  .rare { color: dodgerblue; }
+  .legendary { color: gold; }
+  .mythic { color: violet; }
+</style>
+</head>
+<body>
+
+<h1>🎴 Pokémon Card Clicker</h1>
+<p>PokéCoins: <span id="coins">0</span> 💰</p>
+
+<button onclick="clickCoins()">🖱️ Click for 10 Coins</button><br>
+<button onclick="buyPack()">🛒 Buy Booster Pack (100 Coins)</button>
+<button onclick="openPack()">🎁 Open Booster Pack</button>
+
+<h2>Packs Owned: <span id="packs">0</span></h2>
+
+<h2>🗂️ Your Card Collection</h2>
+<div id="inventory"></div>
+
+<script>
+let coins = 0;
+let packs = 0;
+let collection = [];
+
+// Card rarity probabilities and pool
+const cardPool = [
+  { name: "Pidgey", rarity: "common" },
+  { name: "Rattata", rarity: "common" },
+  { name: "Ekans", rarity: "uncommon" },
+  { name: "Sandshrew", rarity: "uncommon" },
+  { name: "Charizard", rarity: "rare" },
+  { name: "Mewtwo", rarity: "legendary" },
+  { name: "Arceus", rarity: "mythic" }
+];
+
+function updateUI() {
+  document.getElementById("coins").textContent = coins;
+  document.getElementById("packs").textContent = packs;
+  const inv = document.getElementById("inventory");
+  inv.innerHTML = "";
+  collection.forEach(c => {
+    const div = document.createElement("div");
+    div.className = c.rarity;
+    div.textContent = `${c.name} (${c.rarity.toUpperCase()})`;
+    inv.appendChild(div);
+  });
+}
+
+function clickCoins() {
+  coins += 10;
+  updateUI();
+}
+
+function buyPack() {
+  if (coins >= 100) {
+    coins -= 100;
+    packs++;
+    updateUI();
+  } else {
+    alert("Not enough PokéCoins!");
+  }
+}
+
+function openPack() {
+  if (packs <= 0) {
+    alert("You don’t have any booster packs!");
+    return;
+  }
+  packs--;
+
+  // Choose a random card rarity
+  const roll = Math.random();
+  let rarity;
+  if (roll < 0.6) rarity = "common";
+  else if (roll < 0.85) rarity = "uncommon";
+  else if (roll < 0.95) rarity = "rare";
+  else if (roll < 0.99) rarity = "legendary";
+  else rarity = "mythic";
+
+  // Pick a random card of that rarity
+  const possibleCards = cardPool.filter(c => c.rarity === rarity);
+  const card = possibleCards[Math.floor(Math.random() * possibleCards.length)];
+
+  collection.push(card);
+  alert(`You pulled a ${rarity.toUpperCase()} card: ${card.name}!`);
+  updateUI();
+}
+
+updateUI();
+</script>
+</body>
+</html>
